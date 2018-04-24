@@ -15,3 +15,5 @@
 
 # Ignore local libraries
 /vendor
+
+/gitlab-tag-creator*
