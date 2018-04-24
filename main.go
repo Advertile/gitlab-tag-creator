@@ -58,6 +58,16 @@ func bumpVersion(projectID string, glClient *gitlab.Client, vt string) (version 
 	return uv, nil
 }
 
+func nonEmptyEnvVar(varName string) string {
+	val := os.Getenv(varName)
+
+	if val == "" {
+		log.Fatalf("%s environment variable is not set", varName)
+	}
+
+	return val
+}
+
 func main() {
 	if os.Args[1] != "update" {
 		log.Fatal("Only update command is supported")
@@ -70,15 +80,9 @@ func main() {
 	// version type
 	vt := os.Args[2]
 
-	projectID := os.Getenv("CI_PROJECT_ID")
-	if projectID == "" {
-		log.Fatal("CI_PROJECT_ID environment variable is not set")
-	}
-
-	gitlabToken := os.Getenv("GITLAB_TOKEN")
-	if gitlabToken == "" {
-		log.Fatal("GITLAB_TOKEN environment variable is not set")
-	}
+	commitSHA := nonEmptyEnvVar("CI_COMMIT_SHA")
+	projectID := nonEmptyEnvVar("CI_PROJECT_ID")
+	gitlabToken := nonEmptyEnvVar("GITLAB_TOKEN")
 
 	glClient := gitlab.NewClient(nil, gitlabToken)
 
@@ -88,5 +92,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%v", ver)
+	fmt.Printf("Creating new tag: %v", ver)
+
+	tagOpt := &gitlab.CreateTagOptions{
+		TagName: &ver,
+		Ref:     &commitSHA,
+		// Message:            "",
+		// ReleaseDescription: "",
+	}
+	_, _, err = glClient.Tags.CreateTag(projectID, tagOpt)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
