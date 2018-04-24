@@ -1,0 +1,16 @@
+---
+
+builds:
+  - main: main.go
+    # binary: gitlab-tag-creator
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+# Archive customization
+archive:
+  # No archives are created and the binaries are instead uploaded directly
+  format: binary
